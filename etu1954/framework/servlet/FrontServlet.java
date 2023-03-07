@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletResponse;
  * @author ETU1954
  */
 public class FrontServlet extends HttpServlet {
+    HashMap<String, Mapping> mappingUrls;
 
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
