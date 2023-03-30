@@ -1,3 +1,4 @@
+cls
 javac -d Framework/web/WEB-INF/classes Framework/etu1954/framework/*.java Framework/etu1954/framework/annotation/*.java Framework/etu1954/framework/servlet/*.java
 @REM create jar file
 jar cvf framework.jar -C .\Framework\web\WEB-INF\classes\ .

@@ -11,8 +11,10 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.servlet.RequestDispatcher;
 
 import etu1954.framework.Mapping;
+import etu1954.framework.Modelview;
 import etu1954.framework.annotation.MyUrl.MyURL;
 
 /**
@@ -66,16 +68,32 @@ public class FrontServlet extends HttpServlet {
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
-        response.setContentType("text/html");
-        PrintWriter out = response.getWriter();
-        out.println("<html><body>");
-        out.println("<h1>Liste des mappings :</h1>");
-        for (Map.Entry<String, Mapping> entry : mappingUrls.entrySet()) {
-            out.println("<p>URL: " + entry.getKey() + "</p>");
-            out.println("<p>Class: " + entry.getValue().getClassName() + "</p>");
-            out.println("<p>Method: " + entry.getValue().getMethod() + "</p><br>");
+        try {
+            String current = request.getRequestURI().replace(request.getContextPath(), "");
+            response.getWriter().println("Current URI: " + current); // Débogage
+
+            if (mappingUrls.containsKey(current)) {
+                Mapping mapp = mappingUrls.get(current);
+                String className = mapp.getClassName();
+                String packageName = "etu1954.framework.models";
+                String fullClassName = packageName + "." + className;
+
+                response.getWriter().println("Class name: " + className); // Débogage
+
+                Object obj = Class.forName(fullClassName).getConstructor().newInstance();
+                System.out.println("Class name: " + obj.getClass().getName()); // Afficher le nom de la classe
+                System.out.println("Method name: " + mapp.getMethod()); // Afficher le nom de la méthode
+                Modelview model = (Modelview) obj.getClass().getMethod(mapp.getMethod()).invoke(obj);
+                System.out.println("View name: " + model.getView()); // Afficher le nom de la vue
+                RequestDispatcher disp = request.getRequestDispatcher(model.getView());
+                disp.forward(request, response);
+            }
+        } catch (
+
+        Exception e) {
+            e.printStackTrace();
+            response.getWriter().println("Une erreur est survenue : " + e.getMessage());
         }
-        out.println("</body></html>");
     }
 
     @Override
