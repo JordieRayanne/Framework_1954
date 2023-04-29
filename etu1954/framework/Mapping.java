@@ -8,6 +8,11 @@ public class Mapping {
     String className;
     String Method;
 
+    public Mapping(String className, String method) {
+        this.setClassName(className);
+        this.setMethod(method);
+    }
+
     public String getClassName() {
         return className;
     }
