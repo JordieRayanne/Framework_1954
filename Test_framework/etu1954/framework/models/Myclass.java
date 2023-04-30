@@ -3,6 +3,7 @@ package etu1954.framework.models;
 import java.util.Date;
 
 import etu1954.framework.Modelview;
+import etu1954.framework.annotation.MyParam;
 import etu1954.framework.annotation.MyUrl;
 import etu1954.framework.annotation.MyUrl.MyURL;
 
@@ -30,8 +31,11 @@ public class Myclass {
     }
 
     @MyURL(url = "/Myclass-save")
-    public void save() {
-        System.out.println("Nom:" + this.getNom() + "age:" + this.getAge());
+    public void save(@MyParam(name = "nom") String nom,@MyParam(name = "age") Integer[] age,@MyParam(name = "ville") String ville) {
+        System.out.println("Nom:" + nom);
+        System.out.println("Age:" + age[0]);
+        System.out.println("Ville:" + ville);
+        System.out.println("this date:" + this.getDate());
     }
 
     public String getNom() {
