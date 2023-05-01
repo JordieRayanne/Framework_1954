@@ -69,31 +69,43 @@ public class FrontServlet extends HttpServlet {
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
         try {
+            PrintWriter out = response.getWriter();
             String current = request.getRequestURI().replace(request.getContextPath(), "");
-            response.getWriter().println("Current URI: " + current); // Débogage
+            response.getWriter().println("Current URI: " + current); // Debugging
 
             if (mappingUrls.containsKey(current)) {
                 Mapping mapp = mappingUrls.get(current);
-                String className = mapp.getClassName();
-                String packageName = "etu1954.framework.models";
-                String fullClassName = packageName + "." + className;
-
-                response.getWriter().println("Class name: " + className); // Débogage
-
-                Object obj = Class.forName(fullClassName).getConstructor().newInstance();
-                System.out.println("Class name: " + obj.getClass().getName()); // Afficher le nom de la classe
-                System.out.println("Method name: " + mapp.getMethod()); // Afficher le nom de la méthode
-                Modelview model = (Modelview) obj.getClass().getMethod(mapp.getMethod()).invoke(obj);
-                System.out.println("View name: " + model.getView()); // Afficher le nom de la vue
-                RequestDispatcher disp = request.getRequestDispatcher(model.getView());
-                disp.forward(request, response);
+                Object result = executeMethod(mapp.getClassName(), mapp.getMethod());
+                if (result instanceof Modelview) {
+                    Modelview model = (Modelview) result;
+                    forwardToView(request, response, model);
+                } else {
+                    out.println("Error: The method did not return a Modelview.");
+                }
             }
-        } catch (
-
-        Exception e) {
+        } catch (Exception e) {
             e.printStackTrace();
             response.getWriter().println("Une erreur est survenue : " + e.getMessage());
         }
+    }
+
+    private Object executeMethod(String className, String methodName) throws Exception {
+        String packageName = "etu1954.framework.models";
+        String fullClassName = packageName + "." + className;
+
+        Object obj = Class.forName(fullClassName).getConstructor().newInstance();
+        return obj.getClass().getMethod(methodName).invoke(obj);
+    }
+
+    private void forwardToView(HttpServletRequest request, HttpServletResponse response, Modelview model)
+            throws ServletException, IOException {
+        RequestDispatcher disp = request.getRequestDispatcher(model.getView());
+        for (Map.Entry<String, Object> entry : model.getData().entrySet()) {
+            String key = String.valueOf(entry.getKey());
+            String value = String.valueOf(entry.getValue());
+            request.setAttribute(key, value);
+        }
+        disp.forward(request, response);
     }
 
     @Override

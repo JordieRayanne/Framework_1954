@@ -7,5 +7,7 @@
     </head>
     <body>
         <h1>Hello World!</h1>
+         <p>nom: ${nom}</p>
+        <p>age: ${age}</p>
     </body>
 </html>

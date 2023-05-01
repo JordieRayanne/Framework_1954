@@ -11,7 +11,13 @@ public class Myclass {
     @MyUrl.MyURL(url = "/my-url")
     public Modelview myMethod() {
         Modelview view = new Modelview();
-        view.setView("hello.jsp");
+        try {
+            view.setView("hello.jsp");
+            view.addItem("nom", "soa");
+            view.addItem("age", 20);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         return view;
     }
 }
