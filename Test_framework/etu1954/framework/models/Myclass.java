@@ -1,5 +1,6 @@
 package etu1954.framework.models;
 
+import etu1954.framework.Modelview;
 import etu1954.framework.annotation.MyUrl;
 
 /**
@@ -8,7 +9,9 @@ import etu1954.framework.annotation.MyUrl;
  */
 public class Myclass {
     @MyUrl.MyURL(url = "/my-url")
-    public void myMethod() {
-        System.out.println("Hello from myMethod!");
+    public Modelview myMethod() {
+        Modelview view = new Modelview();
+        view.setView("hello.jsp");
+        return view;
     }
 }
