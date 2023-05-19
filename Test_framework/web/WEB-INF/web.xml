@@ -3,6 +3,13 @@
     <servlet>
         <servlet-name>FrontServlet</servlet-name>
         <servlet-class>etu1954.framework.servlet.FrontServlet</servlet-class>
+        <multipart-config>
+        <!-- Taille maximale des données multipart en octets -->
+        <max-file-size>5242880</max-file-size>
+        <!-- Taille maximale totale des données multipart en octets -->
+        <max-request-size>10485760</max-request-size>
+        <!-- Emplacement où les fichiers temporaires seront stockés -->
+    </multipart-config>
     </servlet>
     <servlet-mapping>
         <servlet-name>FrontServlet</servlet-name>
