@@ -7,11 +7,13 @@ import etu1954.framework.UploadFile;
 import etu1954.framework.annotation.MyParam;
 import etu1954.framework.annotation.MyUrl;
 import etu1954.framework.annotation.MyUrl.MyURL;
+import etu1954.framework.annotation.Scope;
 
 /**
  *
  * @author ETU1954
  */
+@Scope(singleton =true)
 public class Myclass {
     String nom;
     int age;
