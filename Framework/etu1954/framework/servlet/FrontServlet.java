@@ -4,10 +4,15 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.lang.reflect.Method;
+import java.lang.reflect.Parameter;
+import java.lang.annotation.Annotation;
+import java.lang.reflect.Array;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Date;
 import java.text.DateFormat;
@@ -21,6 +26,7 @@ import javax.servlet.RequestDispatcher;
 
 import etu1954.framework.Mapping;
 import etu1954.framework.Modelview;
+import etu1954.framework.annotation.MyParam;
 import etu1954.framework.annotation.MyUrl.MyURL;
 
 /**
@@ -71,6 +77,32 @@ public class FrontServlet extends HttpServlet {
         return mappings;
     }
 
+    private static Object convertValue(String value, Class<?> type) {
+        try {
+            if (type == String.class) {
+                return value;
+            } else if (type == int.class || type == Integer.class) {
+                return Integer.parseInt(value);
+            } else if (type == long.class || type == Long.class) {
+                return Long.parseLong(value);
+            } else if (type == boolean.class || type == Boolean.class) {
+                return Boolean.parseBoolean(value);
+            } else if (type == double.class || type == Double.class) {
+                return Double.parseDouble(value);
+            } else if (type == float.class || type == Float.class) {
+                return Float.parseFloat(value);
+            } else if (type == char.class || type == Character.class) {
+                return value.charAt(0);
+            } else {
+                throw new IllegalArgumentException("Unsupported parameter type: " + type.getName());
+            }
+        } catch (NumberFormatException e) {
+              // En cas d'erreur de conversion, afficher un message d'erreur
+              System.err.println("Erreur de conversion pour la valeur " + value + " en type " + type.getSimpleName() + ": " + e.getMessage());
+        }
+        return null;    
+        }
+
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
@@ -81,7 +113,6 @@ public class FrontServlet extends HttpServlet {
 
             if (mappingUrls.containsKey(current)) {
                 Mapping mapp = mappingUrls.get(current);
-                Object result = executeMethod(mapp.getClassName(), mapp.getMethod());
 
                 String saveUrl = "/" + mapp.getClassName() + "-save";
 
@@ -94,42 +125,81 @@ public class FrontServlet extends HttpServlet {
                         names.add(paramName);
                     }
 
-                    String packag = "etu1954.framework.models.";
-                    String classname = mapp.getClassName();
-                    Class<?> clazz = null;
-                    clazz = Class.forName(packag + classname);
-                    Object obj = clazz.getConstructor().newInstance();
+                // --end
 
-                    if (clazz != null) {
-                        Field[] fields = clazz.getDeclaredFields();
+                String methodName = mapp.getMethod();
+                String className = mapp.getClassName();
+                String packageName = "etu1954.framework.models.";
+                Class<?> clazz = Class.forName(packageName + className);
+                Object obj = clazz.getConstructor().newInstance();
 
-                        setMatchingFieldValue(request, response, names, fields, obj);
+                Field[] fields = clazz.getDeclaredFields();
+                // set value of field
+                setMatchingFieldValue(request, response, names, fields, obj);
+                // --end
 
-                        // appeler la methode save
-                        Method saveMethod = obj.getClass().getMethod("save");
-                        saveMethod.invoke(obj);
+                Method saveMethod = null;
+                ArrayList<String> paramsMeth = new ArrayList<>();
+                // Rechercher la méthode save dans la classe
+                Method[] methods = clazz.getDeclaredMethods();
+                for (Method method : methods) {
+                    if (method.getName().equals(methodName)) {
+                        saveMethod = method;
+
+                        // Récupérer les annotations MyParam
+                        Annotation[][] parameterAnnotations = method.getParameterAnnotations();
+                        for (Annotation[] annotations : parameterAnnotations) {
+                            for (Annotation annotation : annotations) {
+                                if (annotation instanceof MyParam) {
+                                    MyParam myParamAnnotation = (MyParam) annotation;
+                                    String paramName = myParamAnnotation.name();
+                                    paramsMeth.add(paramName);
+                                }
+                            }
+                        }
+                        break;
                     }
-
-                    // return model view
-                    else if (result instanceof Modelview) {
-                        Modelview model = (Modelview) result;
-                        forwardToView(request, response, model);
-                    } else {
-                        out.println("Error: The method did not return a Modelview.");
-                    }
-
-                } else {
-                    out.println("Error: the url is false");
                 }
 
-            } else {
-                out.println("Error:");
+                // Class<?>[] parameterTypes = saveMethod.getParameterTypes();
+                ArrayList<Object> args = setMatchingMethodParamValue( request,paramsMeth,saveMethod,names);
+                // List<Integer> ageList = Arrays.asList((Integer[]) args.get(1)); // Conversion du tableau en une liste
+                // response.getWriter().println("args: [soa, " + ageList + ", null]");
+
+                for (int i = 0; i < args.size(); i++) {
+                    Object arg = args.get(i);
+                    Parameter parameter = saveMethod.getParameters()[i];
+                    Class<?> parameterType = parameter.getType();
+                    
+                    if (arg != null && !parameterType.isInstance(arg)) {
+                        arg = convertValue(arg.toString(), parameterType);
+                        args.set(i, arg);
+                    }
+                }
+
+                response.getWriter().println("args: " +Arrays.toString(args.toArray()));
+                // Invoker la méthode save avec les valeurs des paramètres
+                saveMethod.invoke(obj, args.toArray());
+
+            }else{
+                Object result = executeMethod(mapp.getClassName(), mapp.getMethod());
+                // return model view
+                if (result instanceof Modelview){  
+                    Modelview model = (Modelview) result;
+                    forwardToView(request, response, model);
+                }
+                //--end
             }
-        } catch (Exception e) {
-            e.printStackTrace(out);
-            // response.getWriter().println("Une erreur est survenue : " + e.getMessage());
+
+        } else {
+            out.println("Error: the url is false");
         }
+    
+    } catch (Exception e) {
+        e.printStackTrace(out);
+        // response.getWriter().println("Une erreur est survenue : " + e.getMessage());
     }
+}         
 
     // set the value of a field if match with parameter name
     public static void setMatchingFieldValue(HttpServletRequest request, HttpServletResponse response,
@@ -162,6 +232,42 @@ public class FrontServlet extends HttpServlet {
             }
         }
     }
+
+        // set the value of a field if match with parameter name for methode parameter
+        public static ArrayList<Object> setMatchingMethodParamValue(HttpServletRequest request,ArrayList<String> paramsMeth,Method saveMethod,ArrayList<String> names) throws ServletException, Exception {
+            ArrayList<Object> args = new ArrayList<>();
+                        for (String methoparameter : paramsMeth) {
+                            if (names.contains(methoparameter)) {
+                                String[] parameterValues = request.getParameterValues(methoparameter);
+                                Class<?> parameterType = saveMethod.getParameterTypes()[paramsMeth.indexOf(methoparameter)];
+                        
+                                if (parameterType.isArray()) {
+                                    Object[] parameterArray = (Object[]) Array.newInstance(parameterType.getComponentType(), parameterValues.length);
+                                    for (int i = 0; i < parameterValues.length; i++) {
+                                        String parameterValue = parameterValues[i];
+                                        Object elementValue = convertValue(parameterValue, parameterType.getComponentType());
+                                        parameterArray[i] = elementValue;
+                                    }
+                                    args.add(parameterArray);
+                                } else {
+                                    if (parameterType.isAssignableFrom(List.class)) {
+                                        List<Object> parameterList = new ArrayList<>();
+                                        for (String parameterValue : parameterValues) {
+                                            Object elementValue = convertValue(parameterValue, parameterType);
+                                            parameterList.add(elementValue);
+                                        }
+                                        args.add(parameterList);
+                                    } else {
+                                        Object arg = convertValue(parameterValues[0], parameterType);
+                                        args.add(arg);
+                                    }
+                                }
+                            } else {
+                                args.add(null);
+                            }
+                        }
+                    return args;
+        }
 
     // compare two string
     public static boolean compare(String parameterName, Field field) {
