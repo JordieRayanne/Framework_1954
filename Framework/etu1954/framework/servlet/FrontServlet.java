@@ -10,6 +10,7 @@ import java.lang.reflect.Parameter;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Array;
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Enumeration;
@@ -33,6 +34,7 @@ import etu1954.framework.Modelview;
 import etu1954.framework.UploadFile;
 import etu1954.framework.annotation.MyParam;
 import etu1954.framework.annotation.Scope;
+import etu1954.framework.annotation.Auth;
 import etu1954.framework.annotation.MyUrl.MyURL;
 
 /**
@@ -42,6 +44,24 @@ import etu1954.framework.annotation.MyUrl.MyURL;
 public class FrontServlet extends HttpServlet {
     HashMap<String, Mapping> mappingUrls;
     HashMap<String, Object> singletonUrls;
+    private String isConnected;
+    private String profile;
+
+    public String getIsConnected() {
+        return isConnected;
+    }
+
+    public void setIsConnected(String isConnected) {
+        this.isConnected = isConnected;
+    }
+
+    public String getProfile() {
+        return profile;
+    }
+
+    public void setProfile(String profile) {
+        this.profile = profile;
+    }
 
     public HashMap<String, Object> getSingletonUrls() {
         return singletonUrls;
@@ -59,12 +79,30 @@ public class FrontServlet extends HttpServlet {
         this.mappingUrls = mappingUrls;
     }
 
-    public void init() throws ServletException {
+    public void init(ServletConfig config) throws ServletException {
         HashMap<String, Mapping> mappings = this.getMappingsInDirectory();
         this.setMappingUrls(mappings);
 
         HashMap<String, Object> singletons = this.getSingletonInDirectory();
         this.setSingletonUrls(singletons);
+
+        setIsConnected(config.getInitParameter("session-name-isconnected"));
+        setProfile(config.getInitParameter("session-name-profile"));
+    }
+
+     private boolean treatAuth(HttpServletRequest request, Method controller) {
+        Auth a = controller.getAnnotation(Auth.class);
+        if( a != null) {
+            HttpSession session = request.getSession();
+            String profile = (String) session.getAttribute(getProfile());
+            boolean isConnected = (boolean) session.getAttribute(getIsConnected());
+            if (a.value().equals("")){
+                return isConnected;
+            } else {
+                return isConnected && a.value().equals(profile);
+            }
+        }
+        return true;
     }
 
     private HashMap<String, Mapping> getMappingsInDirectory() {
@@ -357,7 +395,15 @@ public class FrontServlet extends HttpServlet {
                 // return model view
                 if (result instanceof Modelview){  
                     Modelview model = (Modelview) result;
-                    forwardToView(request, response, model);
+                    HttpSession session = request.getSession();
+                    for (String session_name : model.getRemovingSession()) {
+                        session.removeAttribute(session_name);
+                    }
+                    if (model.isInvalidateSession() == true) {
+                        session.invalidate();
+                    }else{
+                        forwardToView(request, response, model);
+                    }
                 }
                 //--end
             }
@@ -370,7 +416,17 @@ public class FrontServlet extends HttpServlet {
         e.printStackTrace(out);
         // response.getWriter().println("Une erreur est survenue : " + e.getMessage());
     }
-}         
+
+}   
+    
+    private void treatSession(HttpServletRequest request, Modelview mv) {
+        for (Map.Entry<String, Object> entry : mv.getSession().entrySet()) {
+            String key = String.valueOf(entry.getKey());
+            Object val = entry.getValue();
+            HttpSession session = request.getSession();
+            session.setAttribute(key, val);
+        }
+    }      
 
     // set the value of a field if match with parameter name
     public static void setMatchingFieldValue(HttpServletRequest request, HttpServletResponse response,
