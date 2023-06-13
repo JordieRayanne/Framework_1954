@@ -1,7 +1,9 @@
 package etu1954.framework.servlet;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
 import java.lang.reflect.Method;
 import java.lang.reflect.Parameter;
@@ -23,9 +25,12 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.RequestDispatcher;
+import javax.servlet.http.Part;
+import javax.servlet.annotation.MultipartConfig;
 
 import etu1954.framework.Mapping;
 import etu1954.framework.Modelview;
+import etu1954.framework.UploadFile;
 import etu1954.framework.annotation.MyParam;
 import etu1954.framework.annotation.MyUrl.MyURL;
 
@@ -103,28 +108,65 @@ public class FrontServlet extends HttpServlet {
         return null;    
         }
 
+           //get name file upload    
+    private String getFileName(Part part) {
+        String contentDisposition = part.getHeader("content-disposition");
+        String[] elements = contentDisposition.split(";");
+        for (String element : elements) {
+            if (element.trim().startsWith("filename")) {
+                return element.substring(element.indexOf('=') + 1).trim().replace("\"", "");
+            }
+        }
+        return "";
+    }
+
+    //get bytes file upload
+    private byte[] readBytes(InputStream inputStream) throws IOException {
+        ByteArrayOutputStream byteOutput = new ByteArrayOutputStream();
+        byte[] buffer = new byte[4096];
+        int bytesRead;
+        
+        while ((bytesRead = inputStream.read(buffer)) != -1) {
+            byteOutput.write(buffer, 0, bytesRead);
+        }
+        
+        return byteOutput.toByteArray();
+    }
+
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
+        UploadFile fileupload=null;
+
         PrintWriter out = response.getWriter();
         try {
             String current = request.getRequestURI().replace(request.getContextPath(), "");
-            response.getWriter().println("Current URI: " + current); // Debugging
+            // response.getWriter().println("Current URI: " + current); // Debugging
+              
+            //upload file 
+            if(request.getContentType() != null && request.getContentType().startsWith("multipart/form-data")){
+                List<Part> parts=(List<Part>) request.getParts();
+                for (Part part : parts) {
+                    if (part.getName().equals("file")) {
+                        String fileName = getFileName(part);
+                        byte[] fileBytes = readBytes(part.getInputStream());
+                        fileupload=new UploadFile(fileName, fileBytes);
+                                                    
+                        break;
+                    } 
+                }
+            }
 
             if (mappingUrls.containsKey(current)) {
                 Mapping mapp = mappingUrls.get(current);
 
-                String saveUrl = "/" + mapp.getClassName() + "-save";
-
-                if (current.compareTo(saveUrl) == 0) {
-                    // get parameterNames
+                 // get parameterNames
                     ArrayList<String> names = new ArrayList<String>();
                     Enumeration<String> paramNames = request.getParameterNames();
                     while (paramNames.hasMoreElements()) {
                         String paramName = (String) paramNames.nextElement();
                         names.add(paramName);
                     }
-
                 // --end
 
                 String methodName = mapp.getMethod();
@@ -137,6 +179,24 @@ public class FrontServlet extends HttpServlet {
                 // set value of field
                 setMatchingFieldValue(request, response, names, fields, obj);
                 // --end
+                
+                //if field class instanceof UploadFile
+                for(Field field:fields){
+                    if(field.getType()==UploadFile.class){
+                        field.setAccessible(true);  // Utiliser setAccessible(true)
+                        if (fileupload != null) {
+                            field.set(obj, fileupload);
+                            UploadFile uploadedFile=(UploadFile) field.get(obj);
+                            response.getWriter().println("Nom du fichier : " + uploadedFile.getName()+"<br>");
+                            response.getWriter().println("Taille du fichier : " + uploadedFile.getBytes().length + " bytes");
+                        }
+                    }
+                }
+                //--end
+
+                String saveUrl = "/" + mapp.getClassName() + "-save";
+
+                if (current.compareTo(saveUrl) == 0) {
 
                 Method saveMethod = null;
                 ArrayList<String> paramsMeth = new ArrayList<>();

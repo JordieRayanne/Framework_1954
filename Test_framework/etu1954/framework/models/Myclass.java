@@ -3,6 +3,7 @@ package etu1954.framework.models;
 import java.util.Date;
 
 import etu1954.framework.Modelview;
+import etu1954.framework.UploadFile;
 import etu1954.framework.annotation.MyParam;
 import etu1954.framework.annotation.MyUrl;
 import etu1954.framework.annotation.MyUrl.MyURL;
@@ -16,6 +17,15 @@ public class Myclass {
     int age;
     Double poids;
     Date date;
+    UploadFile upload;
+
+    public UploadFile getUpload() {
+        return upload;
+    }
+
+    public void setUpload(UploadFile upload) {
+        this.upload = upload;
+    }
 
     @MyUrl.MyURL(url = "/my-url")
     public Modelview myMethod() {
@@ -36,6 +46,11 @@ public class Myclass {
         System.out.println("Age:" + age[0]);
         System.out.println("Ville:" + ville);
         System.out.println("this date:" + this.getDate());
+    }
+
+    @MyUrl.MyURL(url = "/upload")
+    public void upload() {
+       
     }
 
     public String getNom() {
