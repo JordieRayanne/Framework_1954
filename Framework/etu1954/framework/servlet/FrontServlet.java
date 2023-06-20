@@ -36,6 +36,7 @@ import etu1954.framework.Modelview;
 import etu1954.framework.UploadFile;
 import etu1954.framework.annotation.MyParam;
 import etu1954.framework.annotation.Scope;
+import etu1954.framework.annotation.restAPI;
 import etu1954.framework.annotation.Auth;
 import etu1954.framework.annotation.MyUrl.MyURL;
 
@@ -297,6 +298,7 @@ public class FrontServlet extends HttpServlet {
                 String packageName = "etu1954.framework.models.";
                 Class<?> clazz = Class.forName(packageName + className);
                 Object obj;
+
             // singleton
                 Scope anno=clazz.getAnnotation(Scope.class);
                 if(anno!=null && anno.singleton()){
@@ -391,7 +393,17 @@ public class FrontServlet extends HttpServlet {
                 response.getWriter().println("args: " +Arrays.toString(args.toArray()));
                 // Invoker la méthode save avec les valeurs des paramètres
                 saveMethod.invoke(obj, args.toArray());
-
+            
+            String url = getURL(request);
+            Class<?> class_controller = findController(url);
+            Class<?> controller_class = findController(url);
+            Method controller_method = findMethodController(controller_class, url);
+            restAPI rest = controller_method.getAnnotation(restAPI.class);
+            Object model_view = executeController(request, url,controller_method);
+            if (rest != null) {
+                 Gson gson = new Gson();
+                String json = gson.toJson(model_view);
+                out.print(json);
             }else{
                 Object result = executeMethod(mapp.getClassName(), mapp.getMethod());
                 // return model view
@@ -424,6 +436,36 @@ public class FrontServlet extends HttpServlet {
     }
 
 }   
+
+ private Method findMethodController(Class<?> c, String url) throws Exception {
+        for (Method m : c.getDeclaredMethods()) {
+            if (m.getName().equals(getMappingUrls().get(url).getMethod())){
+                return m;
+            }
+        }
+        throw new Exception("Method not found");
+    }
+
+    private Class findController(String url) throws Exception {
+        List<Class<?>> lc = getListClass();
+        for (Class<?> c : lc) {
+            if (c.getSimpleName().equals(getMappingUrls().get(url).getClassName())) {
+                for (Method m : c.getDeclaredMethods()) {
+                    if (m.getName().equals(getMappingUrls().get(url).getMethod())){
+                        return c;
+                    }
+                }
+            }
+        }
+        throw new Exception("Controller not found");
+    }
+    
+    private String getURL(HttpServletRequest request) {
+        String contextPath = request.getContextPath();
+        String requestURI = request.getRequestURI();
+        return requestURI.split(contextPath)[1];
+    }
+
     
     private void treatSession(HttpServletRequest request, Modelview mv) {
         for (Map.Entry<String, Object> entry : mv.getSession().entrySet()) {
