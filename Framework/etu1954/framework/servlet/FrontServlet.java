@@ -49,6 +49,8 @@ public class FrontServlet extends HttpServlet {
     HashMap<String, Object> singletonUrls;
     private String isConnected;
     private String profile;
+    private ArrayList<Class<?>> list_class;
+
 
     public String getIsConnected() {
         return isConnected;
