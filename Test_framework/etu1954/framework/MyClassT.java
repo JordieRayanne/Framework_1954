@@ -1,6 +1,9 @@
 package etu1954.framework;
 
+import etu1954.framework.annotation.Auth;
 import etu1954.framework.annotation.MyUrl;
+import etu1954.framework.annotation.Session;
+import etu1954.framework.annotation.restAPI;
 
 import java.util.HashMap;
 
@@ -9,6 +12,7 @@ import etu1954.framework.Modelview;
 
 public class MyClassT {
     HashMap<String, Object> session = new HashMap<>();
+
     String username;
     String mdp;
 
@@ -48,4 +52,45 @@ public class MyClassT {
         }
         return new Modelview("not_connect.jsp");
     } 
+
+    @Auth("admin")
+    @MyUrl.MyURL(url ="/session-act")
+    public Modelview emp(String id, String dept) {
+        Modelview mv = new Modelview("list.jsp");
+        mv.addItem("first_name", id);
+        mv.addItem("last_name", dept);
+        return mv;
+    }
+
+    @Auth
+    @MyUrl.MyURL(url ="/find-act")
+    public Modelview findAll() {
+        Modelview mv = new Modelview("list.jsp");
+        mv.addItem("first_name", "you");
+        mv.addItem("last_name", "youyou");
+        return mv;
+    }
+
+    @Session
+    @MyUrl.MyURL(url ="/session-act")
+    public Modelview testSession(String key, Object value) {
+        Modelview mv = new Modelview("session.jsp");
+        mv.addSession(key, value);
+        System.out.println("SESSION->"+getSession());
+        return mv;
+    }
+
+    @restAPI
+    @MyUrl.MyURL(url ="/apirest-act")
+    public Object apiRest() {
+        return this;
+    }
+
+    public HashMap<String, Object> getSession() {
+        return session;
+    }
+
+    public void setSession(HashMap<String, Object> session) {
+        this.session = session;
+    }
 }
