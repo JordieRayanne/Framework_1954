@@ -41,26 +41,26 @@ etu1954.framework.models;
 
 # FORME MODEL:
 public class Model {    
-    // url: une annotation qui décrit quelle Url mènent vers la fonction
-    // la fonction doit impérativement retourner un ModelView
-    @MyUrl.MyURL(url = "/my-url")
-    public ModelView nameFunction() {
-        ModelView mv = new ModelView("view_name.jsp");
-        return mv;
-    }
-}
+    // url: une annotation qui décrit quelle Url mènent vers la fonction    
+    // la fonction doit impérativement retourner un ModelView    
+    @MyUrl.MyURL(url = "/my-url")    
+    public ModelView nameFunction() {    
+        ModelView mv = new ModelView("view_name.jsp");    
+        return mv;    
+    }    
+}    
 
-# AJOUT ATTRIBUT DANS LE MODEL:
+# AJOUT ATTRIBUT DANS LE MODEL:    
 // Le nom dans les formulaires doivent correspondre au nom d' attribut)
 // Les types d'attributs ne doivent surtout pas être des types primitives
 // getter et setter requis
-public class Model {
-    String nom;
-    int age;
-    Double poids;
-    Date date;
-    UploadFile upload;
-}
+public class Model {    
+    String nom;    
+    int age;    
+    Double poids;    
+    Date date;    
+    UploadFile upload;    
+}    
 
 # POUR LA METHODE QUI SET lA VALEUR DES ATTRIBUTS D'UNE MODEL:
 // les parametre du methode doit être annoté par @MyParam(name = "nom") avec 'name' le nom de l'attribut dans la classe
