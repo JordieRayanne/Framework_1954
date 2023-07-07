@@ -3,6 +3,16 @@
     <servlet>
         <servlet-name>FrontServlet</servlet-name>
         <servlet-class>etu1954.framework.servlet.FrontServlet</servlet-class>
+        
+        <init-param>
+            <param-name>session-name-isconnected</param-name>
+            <param-value>isconnected</param-value>
+        </init-param>
+        <init-param>
+            <param-name>session-name-profile</param-name>
+            <param-value>profile</param-value>
+        </init-param>
+
         <multipart-config>
         <!-- Taille maximale des données multipart en octets -->
         <max-file-size>5242880</max-file-size>
@@ -10,6 +20,7 @@
         <max-request-size>10485760</max-request-size>
         <!-- Emplacement où les fichiers temporaires seront stockés -->
     </multipart-config>
+
     </servlet>
     <servlet-mapping>
         <servlet-name>FrontServlet</servlet-name>

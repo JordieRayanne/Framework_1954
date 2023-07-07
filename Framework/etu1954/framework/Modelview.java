@@ -1,5 +1,6 @@
 package etu1954.framework;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
@@ -9,6 +10,45 @@ import java.util.HashMap;
 public class Modelview {
     String view;
     HashMap<String, Object> data;
+    private HashMap<String, Object> session = new HashMap<>();
+    private ArrayList<String> removingSession = new ArrayList<>();
+    private boolean invalidateSession = false;
+    
+    public boolean isInvalidateSession() {
+        return invalidateSession;
+    }
+
+    public void setInvalidateSession(boolean invalidateSession) {
+        this.invalidateSession = invalidateSession;
+    }
+
+
+    
+    
+    public ArrayList<String> getRemovingSession() {
+        return removingSession;
+    }
+
+    public void setRemovingSession(ArrayList<String> removingSession) {
+        this.removingSession = removingSession;
+    }
+
+    public void addSession(String key, Object value) {
+        getSession().put(key, value);
+    }
+
+    public Modelview(String view) {
+        setView(view);
+    }
+
+    public HashMap<String, Object> getSession() {
+        return session;
+    }
+
+    public void setSession(HashMap<String, Object> session) {
+        this.session = session;
+    }
+
 
     public Modelview() {
         this.data = new HashMap<>();
