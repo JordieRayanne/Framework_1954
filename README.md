@@ -1,7 +1,8 @@
 # Framework_1954
-author:FANOVOSOA Rotsy 
+author:FANOVOSOA Rotsy
+ETU001954
 
-#PACKAGE:
+# PACKAGE:
 import etu1954.framework.annotation.Auth;
 import etu1954.framework.annotation.MyUrl;
 import etu1954.framework.annotation.Session;
@@ -9,7 +10,7 @@ import etu1954.framework.annotation.restAPI;
 import etu1954.framework.ModelView;
 import etu2025.framework.FileUpload;
 
-#FORMAT DU WEB.XML: par defaut
+# FORMAT DU WEB.XML: par defaut
 <?xml version="1.0" encoding="UTF-8"?>
 <web-app version="3.1" xmlns="http://xmlns.jcp.org/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd">
     <servlet>
@@ -35,10 +36,10 @@ import etu2025.framework.FileUpload;
     </session-config>
 </web-app>
 
-#PACKAGE DU MODEL:
+# PACKAGE DU MODEL:
 etu1954.framework.models;
 
-#FORME MODEL:
+# FORME MODEL:
 public class Model {
     // url: une annotation qui décrit quelle Url mènent vers la fonction
     // la fonction doit impérativement retourner un ModelView
@@ -49,7 +50,7 @@ public class Model {
     }
 }
 
-#AJOUT ATTRIBUT DANS LE MODEL:
+# AJOUT ATTRIBUT DANS LE MODEL:
 // Le nom dans les formulaires doivent correspondre au nom d' attribut)
 // Les types d'attributs ne doivent surtout pas être des types primitives
 // getter et setter requis
@@ -61,7 +62,7 @@ public class Model {
     UploadFile upload;
 }
 
-#POUR LA METHODE QUI SET lA VALEUR DES ATTRIBUTS D'UNE MODEL:
+# POUR LA METHODE QUI SET lA VALEUR DES ATTRIBUTS D'UNE MODEL:
 // les parametre du methode doit être annoté par @MyParam(name = "nom") avec 'name' le nom de l'attribut dans la classe
  @MyURL(url = "/Model-save")  //url= le nom du modele plus -save
     public void Methodname(@MyParam(name = "nom") String nom,@MyParam(name = "age") Integer[] age,@MyParam(name = "ville") String ville) {
@@ -71,7 +72,7 @@ public class Model {
         System.out.println("this date:" + this.getDate());
     }
 
-  #ENVOIE DE VALEUR VERS LA VUE:
+  # ENVOIE DE VALEUR VERS LA VUE:
    @MyUrl.MyURL(url = "/my-url")
     public Modelview Methodname() {
         Modelview view = new Modelview();
@@ -85,7 +86,7 @@ public class Model {
         return view;
     }
 
-#AJOUT SESSION:
+# AJOUT SESSION:
 @url("/url.action")
 public ModelView nameFunction() {
     ModelView mv = new ModelView("view_name.jsp");
@@ -94,7 +95,7 @@ public ModelView nameFunction() {
     return mv;
 }
 
-#RECUPERER SESSION:
+# RECUPERER SESSION:
 public class Model {
     HashMap<String, Object> session = new HashMap<>(); // doit inclure attributs et ses getters et setters
     // Les fonctions voulant utilisés les sessions doit inclure cette annotation
@@ -107,7 +108,7 @@ public class Model {
     }
 }
 
-#REMOVE SESSION: 
+# REMOVE SESSION: 
 public class Model {
     @url("/url.action")
     public ModelView nameFunction() {
@@ -117,7 +118,7 @@ public class Model {
     }
 }
 
-#REMOVE ALL SESSION:
+# REMOVE ALL SESSION:
 @url("/url.action")
 public ModelView nameFunction() {
     ModelView mv = new ModelView("view_name.jsp");
@@ -125,7 +126,7 @@ public ModelView nameFunction() {
     return mv;
 }
 
-#AUTHENTIFICATION:
+# AUTHENTIFICATION:
 //  la fonction est toujours accessible
 @url("/login.action")
 public ModelView login() {
@@ -190,7 +191,7 @@ public ModelView nameFunction() {
     </session-config>
 </web-app>
 
-#UPLOAD FILE:
+# UPLOAD FILE:
 public class Model {
     FileUpload myFiles; // plus getter et setter
     // Les fonctions voulant utilisés les sessions doit inclure cette annotation
@@ -234,7 +235,7 @@ avec le web.xml:
     </session-config>
 </web-app>
 
-#SINGLETON:
+# SINGLETON:
 // Une classe singleton est une classe qui n'est instancier qu'une fois
 @Scope(singleton =true)
 public class Model {
@@ -249,7 +250,7 @@ public class Model {
     }
 }
 
-#JSON AVEC MODELVIEW:
+# JSON AVEC MODELVIEW:
 @url("/json.action")
 public ModelView nameFunction() {
     ModelView mv = new ModelView();
@@ -259,7 +260,7 @@ public ModelView nameFunction() {
     return mv;
 }
 
-#JSON SANS MODELVIEW:
+# JSON SANS MODELVIEW:
 @restAPI //Cette annotation renvoie le JSON de la valeur de retour de la fonction
 @url("/apirest.action")
 public Object apiRest() {
