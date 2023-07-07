@@ -20,6 +20,8 @@ import java.util.Map;
 import java.util.Date;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import com.google.gson.Gson;
+
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -401,6 +403,10 @@ public class FrontServlet extends HttpServlet {
                     }
                     if (model.isInvalidateSession() == true) {
                         session.invalidate();
+                    } if (model.isJSON()) {
+                        Gson gson = new Gson();
+                        String json = gson.toJson(model.getData());
+                        out.print(json);
                     }else{
                         forwardToView(request, response, model);
                     }
