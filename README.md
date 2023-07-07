@@ -11,30 +11,6 @@ import etu1954.framework.ModelView;
 import etu2025.framework.FileUpload;    
 
 # FORMAT DU WEB.XML: par defaut
-<?xml version="1.0" encoding="UTF-8"?>    
-<web-app version="3.1" xmlns="http://xmlns.jcp.org/xml/ns/javaee" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd">    
-    <servlet>    
-        <servlet-name>FrontServlet</servlet-name>    
-        <servlet-class>etu1954.framework.servlet.FrontServlet</servlet-class>    
-        <init-param>    
-            <param-name>session-name-isconnected</param-name>    
-            <param-value>isconnected</param-value>    
-        </init-param>    
-        <init-param>    
-            <param-name>session-name-profile</param-name>    
-            <param-value>profile</param-value>    
-        </init-param>    
-    </servlet>    
-    <servlet-mapping>    
-        <servlet-name>FrontServlet</servlet-name>    
-        <url-pattern>/</url-pattern>    
-    </servlet-mapping>    
-    <session-config>    
-        <session-timeout>    
-            30    
-        </session-timeout>    
-    </session-config>    
-</web-app>    
 
 # PACKAGE DU MODEL:    
 etu1954.framework.models;    
