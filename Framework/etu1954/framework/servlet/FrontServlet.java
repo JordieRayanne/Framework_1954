@@ -32,6 +32,7 @@ import etu1954.framework.Mapping;
 import etu1954.framework.Modelview;
 import etu1954.framework.UploadFile;
 import etu1954.framework.annotation.MyParam;
+import etu1954.framework.annotation.Scope;
 import etu1954.framework.annotation.MyUrl.MyURL;
 
 /**
@@ -40,6 +41,15 @@ import etu1954.framework.annotation.MyUrl.MyURL;
  */
 public class FrontServlet extends HttpServlet {
     HashMap<String, Mapping> mappingUrls;
+    HashMap<String, Object> singletonUrls;
+
+    public HashMap<String, Object> getSingletonUrls() {
+        return singletonUrls;
+    }
+
+    public void setSingletonUrls(HashMap<String, Object> singletonUrls) {
+        this.singletonUrls = singletonUrls;
+    }
 
     public HashMap<String, Mapping> getMappingUrls() {
         return mappingUrls;
@@ -52,6 +62,9 @@ public class FrontServlet extends HttpServlet {
     public void init() throws ServletException {
         HashMap<String, Mapping> mappings = this.getMappingsInDirectory();
         this.setMappingUrls(mappings);
+
+        HashMap<String, Object> singletons = this.getSingletonInDirectory();
+        this.setSingletonUrls(singletons);
     }
 
     private HashMap<String, Mapping> getMappingsInDirectory() {
@@ -80,6 +93,32 @@ public class FrontServlet extends HttpServlet {
             }
         }
         return mappings;
+    }
+
+    private HashMap<String, Object> getSingletonInDirectory() {
+        HashMap<String, Object> singletons = new HashMap<>();
+        String directory = getServletContext().getRealPath("/WEB-INF/classes/etu1954/framework/models");
+        File dir = new File(directory);
+        File[] files = dir.listFiles();
+
+        for (File file : files) {
+            if (file.isFile()) {
+                try {
+                    String fileName = file.getName();
+                    String classNameFromFile = fileName.substring(0, fileName.lastIndexOf("."));
+                    Class<?> cls = Class.forName("etu1954.framework.models." + classNameFromFile);
+                        
+                    Scope annotation = cls.getAnnotation(Scope.class);
+                        if (annotation != null && annotation.singleton()) {
+                            String className = cls.getName();
+                            Object classInstance=cls.newInstance();
+                            singletons.put(className, classInstance);
+                        }
+                } catch (ClassNotFoundException | InstantiationException | IllegalAccessException e) {
+                }
+            }
+        }
+        return singletons;
     }
 
     private static Object convertValue(String value, Class<?> type) {
@@ -133,6 +172,40 @@ public class FrontServlet extends HttpServlet {
         return byteOutput.toByteArray();
     }
 
+    private void resetAttributes(Object object) {
+        try {
+            Class<?> cls = object.getClass();
+            Field[] fields = cls.getDeclaredFields();
+    
+            for (Field field : fields) {
+                field.setAccessible(true);
+                Class<?> fieldType = field.getType();
+    
+                if (!fieldType.isPrimitive()) {
+                    field.set(object, null);
+                } else if (fieldType == boolean.class) {
+                    field.setBoolean(object, false);
+                } else if (fieldType == byte.class) {
+                    field.setByte(object, (byte) 0);
+                } else if (fieldType == short.class) {
+                    field.setShort(object, (short) 0);
+                } else if (fieldType == int.class) {
+                    field.setInt(object, 0);
+                } else if (fieldType == long.class) {
+                    field.setLong(object, 0L);
+                } else if (fieldType == float.class) {
+                    field.setFloat(object, 0.0f);
+                } else if (fieldType == double.class) {
+                    field.setDouble(object, 0.0);
+                } else if (fieldType == char.class) {
+                    field.setChar(object, '\u0000');
+                }
+            }
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+    }
+
     protected void processRequest(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         response.setContentType("text/html;charset=UTF-8");
@@ -140,6 +213,16 @@ public class FrontServlet extends HttpServlet {
 
         PrintWriter out = response.getWriter();
         try {
+             // imprimer les elements dans singletonUrls 
+            // singletonUrls.forEach((className, classInstance) -> {
+            //     try {
+            //     response.getWriter().println("Classe : " + className);
+            //     response.getWriter().println("Instance : " + classInstance);
+            //     response.getWriter().println("...");
+            //     } catch (Exception e) {
+            //         e.printStackTrace(out);
+            //     }
+            // });
             String current = request.getRequestURI().replace(request.getContextPath(), "");
             // response.getWriter().println("Current URI: " + current); // Debugging
               
@@ -173,7 +256,35 @@ public class FrontServlet extends HttpServlet {
                 String className = mapp.getClassName();
                 String packageName = "etu1954.framework.models.";
                 Class<?> clazz = Class.forName(packageName + className);
-                Object obj = clazz.getConstructor().newInstance();
+                Object obj;
+            // singleton
+                Scope anno=clazz.getAnnotation(Scope.class);
+                if(anno!=null && anno.singleton()){
+                    obj = singletonUrls.get(clazz.getName());
+                    resetAttributes(obj);
+
+                // imprimer les valeurs des attributs de obj
+                    // Field[] fields = obj.getClass().getDeclaredFields();
+                    // for (Field field : fields) {
+                    //     field.setAccessible(true);  // Utiliser setAccessible(true)
+                    //     String fieldName = field.getName();
+                    //     Object fieldValue;
+                    //     try {
+                    //         fieldValue = field.get(obj);
+                    //     } catch (IllegalAccessException e) {
+                    //         fieldValue = "N/A";
+                    //     }
+                    //     response.getWriter().println("Attribut: " + fieldName + ", Valeur: " + fieldValue);
+                    // }
+
+                    if(obj==null){
+                        obj=clazz.newInstance();
+                        singletonUrls.put(clazz.getName(),obj);
+                    }
+                }else{
+                    obj = clazz.getConstructor().newInstance();
+                }
+            // --end
 
                 Field[] fields = clazz.getDeclaredFields();
                 // set value of field
