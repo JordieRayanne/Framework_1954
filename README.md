@@ -40,7 +40,7 @@ import etu2025.framework.FileUpload;
 etu1954.framework.models;
 
 # FORME MODEL:
-public class Model {
+public class Model {    
     // url: une annotation qui décrit quelle Url mènent vers la fonction
     // la fonction doit impérativement retourner un ModelView
     @MyUrl.MyURL(url = "/my-url")
