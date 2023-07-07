@@ -79,4 +79,7 @@ public class Modelview {
     public void setJSON(boolean jSON) {
         JSON = jSON;
     }
+    public void addRemovingSession(String session_name) {
+        this.removingSession.add(session_name);
+    }
 }

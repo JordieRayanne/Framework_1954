@@ -86,6 +86,15 @@ public class MyClassT {
         return this;
     }
 
+    @Session
+     @MyUrl.MyURL(url ="/removing-session-act")
+    public Modelview removeSession(String key) {
+        Modelview mv = new Modelview("session.jsp");
+        mv.addRemovingSession("test-session");
+        System.out.println("SESSION->"+getSession());
+        return mv;
+    }
+
     public HashMap<String, Object> getSession() {
         return session;
     }
